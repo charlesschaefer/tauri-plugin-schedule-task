@@ -1,0 +1,44 @@
+[default]
+description = "Default permissions for the plugin"
+permissions = ["allow-ping", "allow-schedule-task", "allow-cancel-task", "allow-list-tasks"]
+
+[[permission]]
+identifier = "allow-ping"
+description = "Enables the ping command without any pre-configured scope."
+commands.allow = ["ping"]
+
+
+[[permission]]
+identifier = "allow-schedule-task"
+description = "Allows scheduling tasks."
+commands.allow = ["schedule_task"]
+
+[[permission]]
+identifier = "allow-cancel-task"
+description = "Allows cancelling tasks."
+commands.allow = ["cancel_task"] 
+
+[[permission]]
+identifier = "allow-list-tasks"
+description = "Allows listing tasks."
+commands.allow = ["list_tasks"]
+
+[[permission]]
+identifier = "deny-ping"
+description = "Denies the ping command without any pre-configured scope."
+commands.deny = ["ping"]
+
+[[permission]]
+identifier = "deny-schedule-task"
+description = "Denies scheduling tasks."
+commands.deny = ["schedule_task"]
+
+[[permission]]
+identifier = "deny-cancel-task"
+description = "Denies cancelling tasks."
+commands.deny = ["cancel_task"] 
+
+[[permission]]
+identifier = "deny-list-tasks"
+description = "Denies listing tasks."
+commands.deny = ["list_tasks"]

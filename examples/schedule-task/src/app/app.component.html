@@ -1,0 +1,26 @@
+<main class="container">
+  <h1>Welcome to Tauri + Angular!</h1>
+
+  <div class="row">
+    <a href="https://tauri.app" target="_blank">
+      <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
+    </a>
+    <a href="https://angular.io" target="_blank">
+      <img src="/assets/angular.svg" class="logo angular" alt="Angular logo" />
+    </a>
+  </div>
+  <p>Click on the logos to learn more about the frameworks</p>
+
+  <form>
+    <label for="backup-time">Backup time (yyyy-MM-ddTHH:mm:ss):</label>
+    <input id="backup-time" type="datetime-local" [(ngModel)]="backupTime" name="backupTime" />
+    <p>Selected time: {{ backupTime }}</p>
+    <p>Current time: {{ currentTime | date:'yyyy-MM-ddTHH:mm:ss' }}</p>
+    <button (click)="scheduleBackupTask()">Schedule</button>
+  </form>
+  <form class="row" (submit)="greet($event, greetInput.value)">
+    <input #greetInput id="greet-input" placeholder="Enter a name..." />
+    <button type="submit">Greet</button>
+  </form>
+  <p>{{ greetingMessage }}</p>
+</main>
