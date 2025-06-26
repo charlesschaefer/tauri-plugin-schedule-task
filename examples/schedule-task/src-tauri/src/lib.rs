@@ -1,19 +1,24 @@
 use tauri_plugin_schedule_task;
 
 use std::collections::HashMap;
-use tauri_plugin_schedule_task::{ScheduledTaskHandler, Result};
+use tauri_plugin_schedule_task::{Result, ScheduledTaskHandler};
+use chrono::{DateTime, Duration, Local, Utc};
 
 struct MyTaskHandler;
 
 impl ScheduledTaskHandler for MyTaskHandler {
-    fn handle_scheduled_task(&self, task_name: &str, parameters: HashMap<String, String>) -> Result<()> {
+    fn handle_scheduled_task(
+        &self,
+        task_name: &str,
+        parameters: HashMap<String, String>,
+    ) -> Result<()> {
         println!("Executing scheduled task: {}", task_name);
-        
+
         // Log parameters
         for (key, value) in &parameters {
             println!("Parameter {}: {}", key, value);
         }
-        
+
         match task_name {
             "backup" => {
                 println!("Running backup task...");
@@ -33,16 +38,17 @@ impl ScheduledTaskHandler for MyTaskHandler {
             }
             _ => {
                 println!("Unknown task: {}", task_name);
-                return Err(tauri_plugin_schedule_task::Error::Generic(
-                    format!("Unknown task: {}", task_name)
-                ));
+                return Err(tauri_plugin_schedule_task::Error::Generic(format!(
+                    "Unknown task: {}",
+                    task_name
+                )));
             }
         }
-        
+
         Ok(())
     }
 }
- 
+
 // Implement your task functions
 fn perform_backup(params: &HashMap<String, String>) -> Result<()> {
     let default = &String::from("/tmp/backup");
@@ -53,7 +59,8 @@ fn perform_backup(params: &HashMap<String, String>) -> Result<()> {
 }
 
 fn perform_cleanup(params: &HashMap<String, String>) -> Result<()> {
-    let max_age_days: u32 = params.get("max_age_days")
+    let max_age_days: u32 = params
+        .get("max_age_days")
         .and_then(|s| s.parse().ok())
         .unwrap_or(30);
     println!("Cleaning up files older than {} days", max_age_days);
@@ -84,6 +91,7 @@ fn greet(name: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_schedule_task::init_with_handler(MyTaskHandler))
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
