@@ -62,6 +62,7 @@ pub struct TaskInfo {
   pub task_name: String,
   pub scheduled_time: String,
   pub status: TaskStatus,
+  pub parameters: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

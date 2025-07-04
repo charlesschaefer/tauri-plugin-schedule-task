@@ -5,19 +5,17 @@ use crate::Result;
 use crate::ScheduleTaskExt;
 
 #[command]
-pub(crate) async fn ping<R: Runtime>(
-    app: AppHandle<R>,
-    payload: PingRequest,
-) -> Result<PingResponse> {
-    app.schedule_task().ping(payload)
-}
-
-#[command]
 pub(crate) async fn schedule_task<R: Runtime>(
     app: AppHandle<R>,
     payload: ScheduleTaskRequest,
 ) -> Result<ScheduleTaskResponse> {
-    app.schedule_task().schedule_task(payload)
+    let task_result = app.schedule_task().schedule_task(payload);
+        
+    match task_result.await {
+        Ok(response) => Ok(response),
+        Err(e) => Err(e),
+    }
+    //foda
 }
 
 #[command]

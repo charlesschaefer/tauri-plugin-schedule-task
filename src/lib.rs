@@ -3,6 +3,7 @@ use tauri::{
   Manager, Runtime
 };
 use std::collections::HashMap;
+use std::sync::Arc;
 
 pub use models::*;
 
@@ -14,6 +15,7 @@ mod mobile;
 mod commands;
 mod error;
 mod models;
+mod actor;
 
 pub use error::{Error, Result};
 
@@ -62,9 +64,9 @@ pub fn check_scheduled_task_args() -> Option<(String, HashMap<String, String>)> 
 pub fn init_with_handler<R: Runtime, H: ScheduledTaskHandler + Send + Sync + 'static>(
   handler: H,
 ) -> TauriPlugin<R> {
+  let handler_arc = Arc::new(handler);
   Builder::new("schedule-task")
     .invoke_handler(tauri::generate_handler![
-      commands::ping,
       commands::schedule_task,
       commands::cancel_task,
       commands::list_tasks
@@ -73,16 +75,13 @@ pub fn init_with_handler<R: Runtime, H: ScheduledTaskHandler + Send + Sync + 'st
       #[cfg(mobile)]
       let schedule_task = mobile::init(app, api)?;
       #[cfg(desktop)]
-      let schedule_task = desktop::init(app, api)?;
+      let schedule_task = desktop::init(app, api, Some(handler_arc.clone()))?;
       app.manage(schedule_task);
-      
       // Check if this is a scheduled task execution
       if let Some((task_name, parameters)) = check_scheduled_task_args() {
-        let _ = handler.handle_scheduled_task(&task_name, parameters);
-        // Exit after handling the scheduled task
+        let _ = handler_arc.handle_scheduled_task(&task_name, parameters);
         std::process::exit(0);
       }
-      
       Ok(())
     })
     .build()
@@ -92,7 +91,6 @@ pub fn init_with_handler<R: Runtime, H: ScheduledTaskHandler + Send + Sync + 'st
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
   Builder::new("schedule-task")
     .invoke_handler(tauri::generate_handler![
-      commands::ping,
       commands::schedule_task,
       commands::cancel_task,
       commands::list_tasks
@@ -101,7 +99,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       #[cfg(mobile)]
       let schedule_task = mobile::init(app, api)?;
       #[cfg(desktop)]
-      let schedule_task = desktop::init(app, api)?;
+      let schedule_task = desktop::init(app, api, None)?;
       app.manage(schedule_task);
       Ok(())
     })
