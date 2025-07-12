@@ -7,9 +7,9 @@
   ],
   "permissions": [
     "core:default",
-    "opener:default",
     "schedule-task:default",
     "schedule-task:allow-schedule-task",
-    "log:default"
+    "log:default",
+    "notification:default"
   ]
 }

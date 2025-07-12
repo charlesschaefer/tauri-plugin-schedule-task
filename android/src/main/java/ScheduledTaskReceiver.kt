@@ -1,4 +1,4 @@
-package com.plugin.schedule-task
+package com.plugin.scheduletask
 
 import android.content.BroadcastReceiver
 import android.content.Context

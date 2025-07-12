@@ -15,7 +15,7 @@ pub fn init<R: Runtime, C: DeserializeOwned>(
   api: PluginApi<R, C>,
 ) -> crate::Result<ScheduleTask<R>> {
   #[cfg(target_os = "android")]
-  let handle = api.register_android_plugin("com.plugin.schedule-task", "ExamplePlugin")?;
+  let handle = api.register_android_plugin("com.plugin.scheduletask", "ExamplePlugin")?;
   #[cfg(target_os = "ios")]
   let handle = api.register_ios_plugin(init_plugin_schedule_task)?;
   Ok(ScheduleTask(handle))
@@ -32,7 +32,7 @@ impl<R: Runtime> ScheduleTask<R> {
       .map_err(Into::into)
   }
 
-  pub fn schedule_task(&self, payload: ScheduleTaskRequest) -> crate::Result<ScheduleTaskResponse> {
+  pub async fn schedule_task(&self, payload: ScheduleTaskRequest) -> crate::Result<ScheduleTaskResponse> {
     self
       .0
       .run_mobile_plugin("scheduleTask", payload)

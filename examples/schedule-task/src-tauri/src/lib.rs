@@ -2,7 +2,6 @@ use tauri_plugin_schedule_task;
 
 use std::collections::HashMap;
 use tauri_plugin_schedule_task::{Result, ScheduledTaskHandler};
-use chrono::{DateTime, Duration, Local, Utc};
 
 struct MyTaskHandler;
 
@@ -49,11 +48,22 @@ impl ScheduledTaskHandler for MyTaskHandler {
     }
 }
 
+#[cfg(desktop)]
 // Implement your task functions
 fn perform_backup(params: &HashMap<String, String>) -> Result<()> {
     let default = &String::from("/tmp/backup");
     let backup_path = params.get("path").unwrap_or(default);
     println!("Backing up to: {}", backup_path);
+    // Your backup logic here
+    Ok(())
+}
+
+#[cfg(mobile)]
+// Implement your task functions
+fn perform_backup(params: &HashMap<String, String>) -> Result<()> {
+    let default = &String::from("/tmp/backup");
+    let backup_path = params.get("path").unwrap_or(default);
+    println!("[MOBILE] Backing up to: {}", backup_path);
     // Your backup logic here
     Ok(())
 }
@@ -82,19 +92,13 @@ fn run_db_maintenance(_params: &HashMap<String, String>) -> Result<()> {
     Ok(())
 }
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_schedule_task::init_with_handler(MyTaskHandler))
-        .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        //.invoke_handler(tauri::generate_handler![])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

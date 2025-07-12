@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.tauri.schedule-task",
   "build": {
-    "beforeDevCommand": "npm run start",
-    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run start -- --host 192.168.1.7",
+    "devUrl": "http://192.168.1.7:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist/schedule-task/browser"
   },

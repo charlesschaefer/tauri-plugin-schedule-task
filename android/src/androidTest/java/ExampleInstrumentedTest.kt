@@ -1,4 +1,4 @@
-package com.plugin.schedule-task
+package com.plugin.scheduletask
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.plugin.schedule-task", appContext.packageName)
+        assertEquals("com.plugin.scheduletask", appContext.packageName)
     }
 }
