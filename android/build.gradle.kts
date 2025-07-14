@@ -33,6 +33,10 @@ android {
 }
 
 dependencies {
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.0")
+    testImplementation("androidx.test:core:1.5.0")
+    testImplementation("androidx.work:work-testing:2.9.0")
+    testImplementation("org.mockito:mockito-core:5.2.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.0")
