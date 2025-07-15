@@ -2,7 +2,7 @@
 name = "tauri-plugin-schedule-task"
 version = "0.1.0"
 authors = [ "Charles Schaefer" ]
-description = ""
+description = "A Tauri plugin for scheduling tasks using cron-like syntax."
 edition = "2021"
 rust-version = "1.77.2"
 exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
