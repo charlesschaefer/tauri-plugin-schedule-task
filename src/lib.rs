@@ -1,6 +1,5 @@
 use tauri::{
-  plugin::{Builder, TauriPlugin},
-  Manager, Runtime
+  plugin::{Builder, TauriPlugin}, AppHandle, Manager, Runtime
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -15,7 +14,6 @@ mod mobile;
 mod commands;
 mod error;
 mod models;
-mod actor;
 
 pub use error::{Error, Result};
 
@@ -36,8 +34,8 @@ impl<R: Runtime, T: Manager<R>> crate::ScheduleTaskExt<R> for T {
 }
 
 /// Trait for handling scheduled task execution
-pub trait ScheduledTaskHandler {
-  fn handle_scheduled_task(&self, task_name: &str, parameters: HashMap<String, String>) -> Result<()>;
+pub trait ScheduledTaskHandler<R: Runtime> {
+  fn handle_scheduled_task(&self, task_name: &str, parameters: HashMap<String, String>, app: &AppHandle<R>) -> Result<()>;
 }
 
 /// Check if app was launched to run a scheduled task
@@ -61,7 +59,7 @@ pub fn check_scheduled_task_args() -> Option<(String, HashMap<String, String>)> 
 }
 
 /// Initialize the plugin with a task handler
-pub fn init_with_handler<R: Runtime, H: ScheduledTaskHandler + Send + Sync + 'static>(
+pub fn init_with_handler<R: Runtime, H: ScheduledTaskHandler<R> + Send + Sync + 'static>(
   handler: H,
 ) -> TauriPlugin<R> {
   let handler_arc = Arc::new(handler);
@@ -79,7 +77,7 @@ pub fn init_with_handler<R: Runtime, H: ScheduledTaskHandler + Send + Sync + 'st
       app.manage(schedule_task);
       // Check if this is a scheduled task execution
       if let Some((task_name, parameters)) = check_scheduled_task_args() {
-        let _ = handler_arc.handle_scheduled_task(&task_name, parameters);
+        let _ = handler_arc.handle_scheduled_task(&task_name, parameters, app);
         std::process::exit(0);
       }
       Ok(())

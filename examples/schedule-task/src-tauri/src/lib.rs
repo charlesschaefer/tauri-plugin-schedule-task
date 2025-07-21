@@ -1,3 +1,8 @@
+#[cfg(mobile)]
+use tauri::AppHandle;
+#[cfg(desktop)]
+use tauri::AppHandle;
+use tauri::Runtime;
 use tauri_plugin_schedule_task;
 
 use std::collections::HashMap;
@@ -5,11 +10,12 @@ use tauri_plugin_schedule_task::{Result, ScheduledTaskHandler};
 
 struct MyTaskHandler;
 
-impl ScheduledTaskHandler for MyTaskHandler {
+impl <R: Runtime> ScheduledTaskHandler<R> for MyTaskHandler {
     fn handle_scheduled_task(
         &self,
         task_name: &str,
         parameters: HashMap<String, String>,
+        app: &tauri::AppHandle<R>,
     ) -> Result<()> {
         println!("Executing scheduled task: {}", task_name);
 
@@ -21,7 +27,7 @@ impl ScheduledTaskHandler for MyTaskHandler {
         match task_name {
             "backup" => {
                 println!("Running backup task...");
-                self.perform_backup(&parameters)?;
+                self.perform_backup(&parameters, app)?;
             }
             "cleanup" => {
                 println!("Running cleanup task...");
@@ -47,10 +53,11 @@ impl ScheduledTaskHandler for MyTaskHandler {
         Ok(())
     }
 }
+
 impl MyTaskHandler {
     #[cfg(desktop)]
     // Implement your task functions
-    fn perform_backup(&self, params: &HashMap<String, String>) -> Result<()> {
+    fn perform_backup(&self, params: &HashMap<String, String>, app: &AppHandle<R>) -> Result<()> {
         let default = &String::from("/tmp/backup");
         let backup_path = params.get("path").unwrap_or(default);
         println!("Backing up to: {}", backup_path);
@@ -60,10 +67,15 @@ impl MyTaskHandler {
     
     #[cfg(mobile)]
     // Implement your task functions
-    fn perform_backup(&self, params: &HashMap<String, String>) -> Result<()> {
+    fn perform_backup<R: Runtime>(&self, params: &HashMap<String, String>, app: &AppHandle<R>) -> Result<()> {
         let default = &String::from("/tmp/backup");
         let backup_path = params.get("path").unwrap_or(default);
         println!("[MOBILE] Backing up to: {}", backup_path);
+        send_notification(
+            app,
+            "Backup Task",
+            &format!("Backing up to: {}", backup_path),
+        );
         // Your backup logic here
         Ok(())
     }
@@ -103,4 +115,13 @@ pub fn run() {
         //.invoke_handler(tauri::generate_handler![])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+pub fn send_notification<R: Runtime>(app: &AppHandle<R>, title: &str, body: &str) {
+    use tauri_plugin_notification::NotificationExt;
+    app.notification().builder()
+        .title(title)
+        .body(body)
+        .show()
+        .expect("Failed to send notification");
 }

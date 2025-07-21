@@ -14,7 +14,7 @@ use crate::ScheduledTaskHandler;
 pub fn init<R: Runtime, C: DeserializeOwned>(
   app: &AppHandle<R>,
   _api: PluginApi<R, C>,
-  handler: Option<Arc<dyn ScheduledTaskHandler + Send + Sync>>,
+  handler: Option<Arc<dyn ScheduledTaskHandler<R> + Send + Sync>>,
 ) -> crate::Result<ScheduleTask<R>> {
 
 
@@ -43,7 +43,7 @@ pub struct ScheduleTask<R: Runtime> {
   app: AppHandle<R>,
   scheduled_tasks: Arc<Mutex<HashMap<String, TaskInfo>>>,
   job_ids: Arc<Mutex<HashMap<String, JobId>>>,
-  handler: Option<Arc<dyn ScheduledTaskHandler + Send + Sync>>,
+  handler: Option<Arc<dyn ScheduledTaskHandler<R> + Send + Sync>>,
 }
 
 impl<R: Runtime> ScheduleTask<R> {
@@ -94,6 +94,7 @@ impl<R: Runtime> ScheduleTask<R> {
       tasks.insert(task_id.clone(), task_info);
     }
 
+    let app = self.app.clone();
     tokio::spawn({
       let scheduled_tasks = scheduled_tasks.clone();
       let handler = handler.clone();
@@ -111,8 +112,9 @@ impl<R: Runtime> ScheduleTask<R> {
         if let Some(handler) = handler.as_ref() {
           let handler = handler.clone();
           let scheduled_tasks = scheduled_tasks.clone();
+          //let app = app.clone();
           tokio::spawn(async move {
-            let _ = handler.handle_scheduled_task(&task_name, parameters);
+            let _ = handler.handle_scheduled_task(&task_name, parameters, &app);
             let mut tasks = scheduled_tasks.lock().unwrap();
             if let Some(task) = tasks.get_mut(&task_id) {
               task.status = TaskStatus::Completed;
