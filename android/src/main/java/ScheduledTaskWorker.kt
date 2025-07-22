@@ -15,34 +15,41 @@ class ScheduledTaskWorker(context: Context, params: WorkerParameters) : Worker(c
         val packageName = inputData.getString("packageName") ?: return Result.failure()
         
         return try {
+            Logger.info("[WORKER] Trying to execute the task $taskName with Id $taskId")
             executeScheduledTask(taskId, taskName, packageName)
-            Logger.info("Executed the task $taskName successfully")
+            Logger.info("[WORKER] Executed the task $taskName successfully")
             Result.success()
         } catch (e: Exception) {
             Logger.error("Couldn't execute the task $taskName")
+            Logger.error("Error: ${e.message}", e)
             Result.failure()
         }
     }
     
     private fun executeScheduledTask(taskId: String, taskName: String, packageName: String) {
+        Logger.info("[WORKER] Creating the intent for $packageName.MainActivity")
         val intent = Intent().apply {
             setClassName(packageName, "$packageName.MainActivity")
+            //setClassName("com.plugin.scheduletask", "ScheduleTaskActivity")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             putExtra("run_task", taskName)
             putExtra("task_id", taskId)
 
-            Logger.info("Running task $taskName with Id $taskId")
+            Logger.info("[WORKER] Running task $taskName with Id $taskId")
             // Add task parameters
             for (key in inputData.keyValueMap.keys) {
                 if (key.startsWith("param_")) {
                     val paramName = key.removePrefix("param_")
                     val paramValue = inputData.getString(key)
                     putExtra("task_param_$paramName", paramValue)
-                    Logger.info("Param $paramName for the task $taskName: $paramValue")
+                    Logger.info("[WORKER] Param $paramName for the task $taskName: $paramValue")
                 }
             }
         }
         
+        Logger.info("[WORKER] We created the intent to run task $taskName with Id $taskId")
+        Logger.info("[WORKER] Starting the activity intent")
+
         applicationContext.startActivity(intent)
     }
 }

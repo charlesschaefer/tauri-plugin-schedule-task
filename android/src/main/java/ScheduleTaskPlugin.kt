@@ -6,13 +6,16 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.webkit.WebView
 import androidx.work.*
+import app.tauri.Logger
 import app.tauri.annotation.Command
 import app.tauri.annotation.InvokeArg
 import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
+import app.tauri.plugin.Channel
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -39,9 +42,19 @@ class CancelTaskArgs {
   var taskId: String? = null
 }
 
+@InvokeArg
+class SetEventHandlerArgs {
+    lateinit var handler: Channel
+}
+
 @TauriPlugin
 class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
     private val scheduledTasks = mutableMapOf<String, ScheduledTaskInfo>()
+    private var channel: Channel? = null
+
+    companion object {
+        var instance: ScheduleTaskPlugin? = null
+    }
 
     @Command
     fun scheduleTask(invoke: Invoke) {
@@ -130,11 +143,21 @@ class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
         invoke.resolve(ret)
     }
 
+    // This command should not be added to the `build.rs` and exposed as it is only
+    // used internally from the rust backend.
+    @Command
+    fun setEventHandler(invoke: Invoke) {
+        val args = invoke.parseArgs(SetEventHandlerArgs::class.java)
+        this.channel = args.handler
+        invoke.resolve()
+    }
+
     private fun scheduleWithWorkManager(taskId: String, taskName: String, delayMs: Long, parameters: Map<String, String>?) {
         val workData = Data.Builder()
             .putString("taskId", taskId)
             .putString("taskName", taskName)
             .putString("packageName", activity.packageName)
+
             
         parameters?.forEach { (key, value) ->
             workData.putString("param_$key", value)
@@ -198,6 +221,26 @@ class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
             instant.toEpochMilli()
         } catch (e: Exception) {
             throw IllegalArgumentException("Invalid datetime format: $dateTimeStr")
+        }
+    }
+
+    override fun load(webView: WebView) {
+        instance = this
+
+        val intent = activity.intent
+
+        if (intent.action == Intent.ACTION_VIEW) {
+            Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
+            //this.channel?.send(event)
+        }
+
+        super.load(webView)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        if (intent.action == Intent.ACTION_VIEW) {
+            Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
+            //this.channel?.send(event)
         }
     }
 }

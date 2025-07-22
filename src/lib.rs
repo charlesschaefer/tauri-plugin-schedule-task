@@ -71,11 +71,13 @@ pub fn init_with_handler<R: Runtime, H: ScheduledTaskHandler<R> + Send + Sync + 
     ])
     .setup(move |app, api| {
       #[cfg(mobile)]
-      let schedule_task = mobile::init(app, api)?;
+      let schedule_task = mobile::init(app, api, Some(handler_arc.clone()))?;
       #[cfg(desktop)]
       let schedule_task = desktop::init(app, api, Some(handler_arc.clone()))?;
       app.manage(schedule_task);
+      
       // Check if this is a scheduled task execution
+      #[cfg(desktop)]
       if let Some((task_name, parameters)) = check_scheduled_task_args() {
         let _ = handler_arc.handle_scheduled_task(&task_name, parameters, app);
         std::process::exit(0);
@@ -95,7 +97,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
     ])
     .setup(|app, api| {
       #[cfg(mobile)]
-      let schedule_task = mobile::init(app, api)?;
+      let schedule_task = mobile::init(app, api, None)?;
       #[cfg(desktop)]
       let schedule_task = desktop::init(app, api, None)?;
       app.manage(schedule_task);

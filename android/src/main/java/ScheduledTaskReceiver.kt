@@ -3,6 +3,7 @@ package com.plugin.scheduletask
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import app.tauri.Logger
 
 class ScheduledTaskReceiver : BroadcastReceiver() {
     
@@ -15,8 +16,10 @@ class ScheduledTaskReceiver : BroadcastReceiver() {
     }
     
     private fun executeScheduledTask(context: Context, taskId: String, taskName: String, packageName: String, originalIntent: Intent) {
+        Logger.info("[RECEIVER] Creating the intent for $packageName.MainActivity")
         val launchIntent = Intent().apply {
-            setClassName(packageName, "$packageName.MainActivity")
+            //setClassName(packageName, "$packageName.MainActivity")
+            setClassName("com.plugin.scheduletask", "com.plugin.scheduletask.ScheduleTaskActivity")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             putExtra("run_task", taskName)
             putExtra("task_id", taskId)
@@ -31,6 +34,8 @@ class ScheduledTaskReceiver : BroadcastReceiver() {
             }
         }
         
+        Logger.info("[RECEIVER] We created the intent to run task $taskName with Id $taskId")
+        Logger.info("[RECEIVER] Starting the activity intent")
         context.startActivity(launchIntent)
     }
 }

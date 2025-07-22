@@ -61,6 +61,12 @@ impl MyTaskHandler {
         let default = &String::from("/tmp/backup");
         let backup_path = params.get("path").unwrap_or(default);
         println!("Backing up to: {}", backup_path);
+        dbg!("Sending the notification for backup task");
+        send_notification(
+            app,
+            "Backup Task",
+            &format!("Backing up to: {}", backup_path),
+        );
         // Your backup logic here
         Ok(())
     }
@@ -71,6 +77,7 @@ impl MyTaskHandler {
         let default = &String::from("/tmp/backup");
         let backup_path = params.get("path").unwrap_or(default);
         println!("[MOBILE] Backing up to: {}", backup_path);
+        dbg!("[MOBILE] Sending the notification for backup task");
         send_notification(
             app,
             "Backup Task",
@@ -113,6 +120,16 @@ pub fn run() {
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_schedule_task::init_with_handler(MyTaskHandler))
         //.invoke_handler(tauri::generate_handler![])
+        .setup(|app| {
+            // Register the task handler
+            send_notification(
+                app.handle(),
+                "Tauri App",
+                "Scheduled Task Handler Initialized",
+            );
+            println!("Scheduled Task Handler Initialized and notification sent.");
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
