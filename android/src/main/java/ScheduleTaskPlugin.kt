@@ -149,6 +149,7 @@ class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
     fun setEventHandler(invoke: Invoke) {
         val args = invoke.parseArgs(SetEventHandlerArgs::class.java)
         this.channel = args.handler
+        Logger.info("[PLUGIN] Event handler set for scheduled tasks")
         invoke.resolve()
     }
 
@@ -228,9 +229,9 @@ class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
         instance = this
 
         val intent = activity.intent
-
+        Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
         if (intent.action == Intent.ACTION_VIEW) {
-            Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
+            //Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
             //this.channel?.send(event)
         }
 
@@ -238,6 +239,7 @@ class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
     }
 
     override fun onNewIntent(intent: Intent) {
+        Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
         if (intent.action == Intent.ACTION_VIEW) {
             Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
             //this.channel?.send(event)
