@@ -78,11 +78,11 @@ impl MyTaskHandler {
         let backup_path = params.get("path").unwrap_or(default);
         println!("[MOBILE] Backing up to: {}", backup_path);
         dbg!("[MOBILE] Sending the notification for backup task");
-        send_notification(
-            app,
-            "Backup Task",
-            &format!("Backing up to: {}", backup_path),
-        );
+        // send_notification(
+        //     app,
+        //     "Backup Task",
+        //     &format!("Backing up to: {}", backup_path),
+        // );
         // Your backup logic here
         Ok(())
     }

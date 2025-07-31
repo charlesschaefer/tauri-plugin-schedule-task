@@ -58,6 +58,7 @@ class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
 
     @Command
     fun scheduleTask(invoke: Invoke) {
+        Logger.info("[PLUGIN] scheduleTask called")
         val args = invoke.parseArgs(ScheduleTaskArgs::class.java)
         val taskName = args.taskName ?: return invoke.reject("Task name is required")
         val scheduleTime = args.scheduleTime ?: return invoke.reject("Schedule time is required")
@@ -147,9 +148,17 @@ class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
     // used internally from the rust backend.
     @Command
     fun setEventHandler(invoke: Invoke) {
+        Logger.info("[PLUGIN] setEventHandler called")
         val args = invoke.parseArgs(SetEventHandlerArgs::class.java)
         this.channel = args.handler
         Logger.info("[PLUGIN] Event handler set for scheduled tasks")
+
+        // val event = JSObject()
+        // event.put("event", "scheduledTaskHandler")
+        // event.put("message", "Event handler set successfully")
+        // event.put("task_name", "Test Task")
+        // event.put("task_id", "123-456-789")
+        // this.channel?.send(event)
         invoke.resolve()
     }
 
@@ -229,7 +238,7 @@ class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
         instance = this
 
         val intent = activity.intent
-        Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
+        Logger.info("[PLUGIN.load] Received the intent with the data ${intent.data} and the action ${intent.action}")
         if (intent.action == Intent.ACTION_VIEW) {
             //Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
             //this.channel?.send(event)
@@ -239,10 +248,26 @@ class ScheduleTaskPlugin(private val activity: Activity): Plugin(activity) {
     }
 
     override fun onNewIntent(intent: Intent) {
-        Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
-        if (intent.action == Intent.ACTION_VIEW) {
-            Logger.info("[PLUGIN] Received the intent with the data ${intent.data}")
-            //this.channel?.send(event)
+        Logger.info("[PLUGIN.onNewIntent] Received the intent with the data ${intent.data} and the action ${intent.action} ($intent)")
+        Logger.info("[PLUGIN.onNewIntent] Extras: ${intent.getStringExtra("run_task")}, ${intent.getStringExtra("task_id")}")
+        val event = JSObject()
+        event.put("task_name", intent.getStringExtra("run_task"))
+        event.put("task_id", intent.getStringExtra("task_id"))
+        val params = JSObject()
+        intent.extras?.keySet()?.forEach { key ->
+            if (key.startsWith("task_param_")) {
+                val paramName = key.removePrefix("task_param_")
+                val paramValue = intent.getStringExtra(key)
+                if (paramValue != null) {
+                    params.put(paramName, paramValue)
+                }
+            }
+        }
+        event.put("parameters", params)
+        Logger.info("[PLUGIN.onNewIntent] Event payload: $event")
+        if (intent.action == null) {
+            Logger.info("[PLUGIN.onNewIntent] No action in the intent, sending event to channel")
+            this.channel?.send(event)
         }
     }
 }

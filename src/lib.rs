@@ -1,7 +1,7 @@
 use tauri::{
   plugin::{Builder, TauriPlugin}, AppHandle, Manager, Runtime
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::{Deref, DerefMut}};
 use std::sync::Arc;
 
 pub use models::*;
